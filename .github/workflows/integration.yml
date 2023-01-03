@@ -19,6 +19,7 @@ jobs:
         run: |
           git config --global user.email "noreply@github.com"
           git config --global user.name "octomerger"
+          git fetch origin
           echo "${{ steps.branch_names.outputs.branches }}"
           git checkout testing
           git reset --hard master --
