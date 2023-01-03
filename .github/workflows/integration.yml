@@ -1,18 +1,24 @@
-name: Integration Test
+name: Octopus-merge to testing
 on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
 
-      - name: Self test
-        id: selftest
+      - name: Get branch names by labels
+        id: branch_names
         uses: festinuz/octupus-merge@master
         with:
           github_token: ${{ github.token }}
           labels: test
 
-      - name: Check outputs
+      - name: Push changes to test branch
         run: |
-          echo "${{ steps.selftest.outputs.branches }}"
+          echo "${{ steps.branch_names.outputs.branches }}"
+          git checkout testing
+          git reset --hard master --
+          git merge ${{ steps.selftest.branch_names.branches }}
+          git push origin HEAD --force
