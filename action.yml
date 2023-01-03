@@ -1,13 +1,15 @@
 name: "Python Container Action Template"
-description: "Get started with Python Container actions"
-author: "Jacob Tomlinson"
+description: "Get list of PR branch names from list of labels"
+author: "festinuz"
 inputs:
-  myInput:
-    description: "Input to use"
-    default: "world"
+  github_token:
+    required: true
+  labels:
+    description: "Coma-separated list of labels used to filter PRs"
+    required: true
 outputs:
-  myOutput:
-    description: "Output from the action"
+  branches:
+    description: "Space-separated list of branches"
 runs:
   using: "docker"
   image: "Dockerfile"
