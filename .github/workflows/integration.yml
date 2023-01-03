@@ -21,7 +21,8 @@ jobs:
           git config --global user.name "octomerger"
           git fetch origin
           echo "${{ steps.branch_names.outputs.branches }}"
+          echo "${{ steps.branch_names.outputs.origin_branches }}"
           git checkout testing
           git reset --hard master --
-          git merge --squash ${{ steps.branch_names.outputs.branches }} && git commit -m "Merge branches found by labels"
+          git merge --squash ${{ steps.branch_names.outputs.origin_branches }} && git commit -m "Merge branches found by labels"
           git push origin HEAD --force

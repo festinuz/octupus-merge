@@ -10,6 +10,8 @@ inputs:
 outputs:
   branches:
     description: "Space-separated list of branches"
+  origin_branches:
+    description: "Space-separated list of branches prefixed with 'origin/'"
 runs:
   using: "docker"
   image: "Dockerfile"

@@ -72,6 +72,9 @@ def main():
     pr_urls = get_pr_urls(token, repository, labels)
     branch_names = get_branch_names(token, pr_urls)
     set_action_output('branches', ' '.join(branch_names))
+    set_action_output(
+        'origin_branches', ' '.join(f'origin/{branch}' for branch in branch_names)
+    )
 
 
 if __name__ == "__main__":
