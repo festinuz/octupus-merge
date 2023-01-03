@@ -7,11 +7,6 @@ from typing import Optional
 import requests
 
 
-USERNAME = 'festinuz'
-PASSWORD = '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'
-AUTH = (USERNAME, PASSWORD)
-
-
 def get_pr_url(issue: Dict[str, Any]) -> Optional[str]:
     if not 'pull_request' in issue:
         return None
@@ -63,7 +58,12 @@ def get_branch_names(token: str, pr_urls: List[str]) -> List[str]:
         branch_names.append(branch_name)
     print(f'Got {len(branch_names)} branch(es)')
     return branch_names
-    
+
+
+def set_action_output(output_name: str, value: str) -> None:
+    with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+        f.write(f'{output_name}={value}\n')
+
 
 def main():
     repository = os.environ['GITHUB_REPOSITORY']  # mercantille/backend
@@ -71,7 +71,7 @@ def main():
     token = os.environ['INPUT_GITHUB_TOKEN']
     pr_urls = get_pr_urls(token, repository, labels)
     branch_names = get_branch_names(token, pr_urls)
-    print(f"::set-output name=branches::{' '.join(branch_names)}")
+    set_action_output('branches', ' '.join(branch_names))
 
 
 if __name__ == "__main__":
