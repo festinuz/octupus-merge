@@ -20,4 +20,6 @@ jobs:
           echo "${{ steps.branch_names.outputs.branches }}"
           git checkout testing
           git reset --hard master --
-          git merge -m "Merge branches found by labels" ${{ steps.selftest.branch_names.branches }} && git push origin HEAD --force
+          git merge --squash -s octopus ${{ steps.selftest.branch_names.branches }}
+          git commit -m "Merge branches found by labels"
+          git push origin HEAD --force
