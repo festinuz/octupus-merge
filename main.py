@@ -18,16 +18,17 @@ def get_pr_url(issue: Dict[str, Any]) -> Optional[str]:
 
 
 def get_pr_urls(token: str, repository: str, label: str) -> List[str]:
-    print('getting issues')
+    print(f'Getting issues for repository "{repository}"')
     response = requests.get(
         f'https://api.github.com/repos/{repository}/issues',
         params={'labels': label},
         headers={'Authorization': f'token {token}'},
     )
-    assert response.status_code == 200
+    resp_json = response.json()
+    assert response.status_code == 200, resp_json
     pr_urls = []
     issues = response.json()
-    print(f'got {len(issues)} issue(s)')
+    print(f'Got {len(issues)} issue(s)')
     for issue in issues:
         pr_url = get_pr_url(issue)
         if pr_url is None:
@@ -41,8 +42,8 @@ def get_branch_name(token: str, pr_url: str) -> Optional[str]:
     response = requests.get(
         pr_url, headers={'Authorization': f'token {token}'},
     )
-    assert response.status_code == 200
     resp_json = response.json()
+    assert response.status_code == 200, resp_json
     if resp_json['state'] != 'open':
         return None
     branch_name = resp_json['head']['ref']
