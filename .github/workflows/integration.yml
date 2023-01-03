@@ -26,5 +26,6 @@ jobs:
           git reset --hard master --
           git merge --squash master ${{ steps.branch_names.outputs.origin_branches }} \
             && git commit -m "Merge branches found by labels" \
-            || git push origin HEAD --force
+            || echo "Nothing to merge"
+          git push origin HEAD --force
 
