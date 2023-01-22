@@ -10,6 +10,14 @@ from typing import Optional
 import requests
 
 
+COMMIT_MESSAGE_TPL = """\
+Merge branches found by label
+
+Merged branches:
+{}
+"""
+
+
 @dataclasses.dataclass
 class PullRequest:
     url: str
@@ -109,7 +117,10 @@ def merge_pr_branches(pull_requests: List[PullRequest]) -> None:
         f'origin/{pr.branch_name}' for pr in pull_requests
     )
     execute_shell_command(f'git merge --squash {origin_branches}')
-    execute_shell_command('git commit -m "Merge branches found by labels"')
+    pr_messages = ['* {pr.branch_name}:{pr.url}' for pr in pull_requests]
+    merged_prs = '\n'.join(pr_messages)
+    commit_msg = COMMIT_MESSAGE_TPL.format(merged_prs)
+    execute_shell_command(f"git commit -m '{commit_msg}'")
 
 
 def push_to_target_branch() -> None:
