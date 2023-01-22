@@ -20,7 +20,9 @@ Merged branches:
 
 @dataclasses.dataclass
 class PullRequest:
-    url: str
+    number: int
+    title: str
+    html_url: str
     branch_name: str
 
 
@@ -56,6 +58,7 @@ def get_pr_urls(token: str, repository: str, labels: str) -> List[str]:
 
 
 def get_pull_request(token: str, url: str) -> Optional[PullRequest]:
+    # https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
     response = requests.get(
         url, headers={'Authorization': f'token {token}'},
     )
@@ -64,10 +67,11 @@ def get_pull_request(token: str, url: str) -> Optional[PullRequest]:
     if resp_json['state'] != 'open':
         print('Pull request is not open, skipping')
         return None
-    branch_name = resp_json['head']['ref']
     pull_request = PullRequest(
-        url=url,
-        branch_name=branch_name,
+        number=resp_json['number'],
+        title=resp_json['title'],
+        html_url=resp_json['html_url'],
+        branch_name=resp_json['head']['ref'],
     )
     return pull_request
 
@@ -117,7 +121,7 @@ def merge_pr_branches(pull_requests: List[PullRequest]) -> None:
         f'origin/{pr.branch_name}' for pr in pull_requests
     )
     execute_shell_command(f'git merge --squash {origin_branches}')
-    pr_messages = [f'* {pr.branch_name}:{pr.url}' for pr in pull_requests]
+    pr_messages = [f'* {pr.title}(#{pr.number})' for pr in pull_requests]
     merged_prs = '\n'.join(pr_messages)
     commit_msg = COMMIT_MESSAGE_TPL.format(merged_prs)
     execute_shell_command(f"git commit -m '{commit_msg}'")
