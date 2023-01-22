@@ -8,4 +8,4 @@ ADD . /app
 WORKDIR /app
 # ENV PYTHONPATH /app
 
-CMD ["/app/main.py"]
+ENTRYPOINT ["python", "/app/main.py"]
