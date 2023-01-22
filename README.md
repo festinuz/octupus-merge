@@ -5,7 +5,11 @@ Find all open PRs that have matching tags, octopus-merge them and push to remote
 For example, merge all branches with tag "test" and push the result to "testing" branch:
 ```yaml
 name: Octopus-merge to testing
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
 jobs:
   build:
     runs-on: ubuntu-latest
