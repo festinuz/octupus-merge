@@ -20,5 +20,8 @@ runs:
     - uses: actions/setup-python@v4
       with:
         python-version: "3.10"
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+      shell: bash
     - run: python main.py
       shell: bash
