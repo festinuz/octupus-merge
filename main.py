@@ -81,7 +81,7 @@ def get_pull_requests(
 
 def execute_shell_command(command: str) -> None:
     print(f'Executing shell command: {command}')
-    result = subprocess.run(['sudo', command], shell=True)
+    result = subprocess.run(command, shell=True)
     result.check_returncode()
 
 
