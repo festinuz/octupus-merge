@@ -1,10 +1,18 @@
+import dataclasses
 import os
+import subprocess
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
 
 import requests
+
+
+@dataclasses.dataclass
+class PullRequest:
+    url: str
+    branch_name: str
 
 
 def get_pr_url(issue: Dict[str, Any]) -> Optional[str]:
@@ -17,11 +25,11 @@ def get_pr_url(issue: Dict[str, Any]) -> Optional[str]:
     return pr_url
 
 
-def get_pr_urls(token: str, repository: str, label: str) -> List[str]:
+def get_pr_urls(token: str, repository: str, labels: str) -> List[str]:
     print(f'Getting issues for repository "{repository}"')
     response = requests.get(
         f'https://api.github.com/repos/{repository}/issues',
-        params={'labels': label},
+        params={'labels': ','.join(labels)},
         headers={'Authorization': f'token {token}'},
     )
     resp_json = response.json()
@@ -38,43 +46,95 @@ def get_pr_urls(token: str, repository: str, label: str) -> List[str]:
     return pr_urls
 
 
-def get_branch_name(token: str, pr_url: str) -> Optional[str]:
+def get_pull_request(token: str, url: str) -> Optional[PullRequest]:
     response = requests.get(
-        pr_url, headers={'Authorization': f'token {token}'},
+        url, headers={'Authorization': f'token {token}'},
     )
     resp_json = response.json()
     assert response.status_code == 200, resp_json
     if resp_json['state'] != 'open':
+        print('Pull request is not open, skipping')
         return None
     branch_name = resp_json['head']['ref']
-    return branch_name
+    pull_request = PullRequest(
+        url=url,
+        branch_name=branch_name,
+    )
+    return pull_request
 
 
-def get_branch_names(token: str, pr_urls: List[str]) -> List[str]:
-    branch_names = list()
-    for pr_url in pr_urls:
-        branch_name = get_branch_name(token, pr_url)
-        if branch_name is None:
+def get_pull_requests(
+        token: str,
+        repository: str,
+        labels: List[str],
+) -> List[PullRequest]:
+    pr_urls = get_pr_urls(token, repository, labels)
+    pull_requests = list()
+    for url in pr_urls:
+        pull_request = get_pull_request(token, url)
+        if pull_request is None:
             continue
-        branch_names.append(branch_name)
-    print(f'Got {len(branch_names)} branch(es)')
-    return branch_names
+        pull_requests.append(pull_request)
+    print(f'Got {len(pull_requests)} pull request(s)')
+    return pull_requests
 
 
-def set_action_output(output_name: str, value: str) -> None:
-    with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-        f.write(f'{output_name}={value}\n')
+def execute_shell_command(command: str) -> None:
+    print(f'Executing shell command: {command}')
+    result = subprocess.run(command)
+    result.check_returncode()
+
+
+def push_to_remote() -> None:
+    execute_shell_command('git push origin HEAD --force')
+
+
+def prepare_target_branch(
+        source_branch: str,
+        target_branch: str,
+) -> None:
+    execute_shell_command('git config --global user.email "noreply@github.com"')
+    execute_shell_command('git config --global user.name "octomerger"')
+    execute_shell_command('git fetch origin')
+    execute_shell_command(f'git checkout {target_branch}')
+    execute_shell_command(f'git reset --hard {source_branch} --')
+
+
+def merge_pr_branches(pull_requests: List[PullRequest]) -> None:
+    if len(pull_requests) == 0:
+        print('No pull requests to merge')
+        return
+    origin_branches = ' '.join(
+        f'origin/{pr.branch_name}' for pr in pull_requests
+    )
+    execute_shell_command(f'git merge --squash {origin_branches}')
+    execute_shell_command('git commit -m "Merge branches found by labels"')
+
+
+def push_to_target_branch() -> None:
+    execute_shell_command('git push origin HEAD --force')
+
+
+def perform_octomerge(
+        token: str,
+        repository: str,
+        source_branch: str,
+        target_branch: str,
+        labels: List[str],
+) -> None:
+    pull_requests = get_pull_requests(token, repository, labels)
+    prepare_target_branch(source_branch, target_branch)
+    merge_pr_branches(pull_requests)
+    push_to_target_branch()
 
 
 def main():
-    repository = os.environ['GITHUB_REPOSITORY']  # mercantille/backend
-    labels = os.environ['INPUT_LABELS']  # deploy/testing
-    token = os.environ['INPUT_GITHUB_TOKEN']
-    pr_urls = get_pr_urls(token, repository, labels)
-    branch_names = get_branch_names(token, pr_urls)
-    set_action_output('branches', ' '.join(branch_names))
-    set_action_output(
-        'origin_branches', ' '.join(f'origin/{branch}' for branch in branch_names)
+    perform_octomerge(
+        token=os.environ['INPUT_GITHUB_TOKEN'],
+        repository=os.environ['GITHUB_REPOSITORY'],
+        source_branch=os.environ['INPUT_SOURCE_BRANCH'],
+        target_branch=os.environ['INPUT_TARGET_BRANCH'],
+        labels=os.environ['INPUT_LABELS'].split(','),
     )
 
 

@@ -1,6 +1,6 @@
 __WIP, please dont use anywhere important__
 
-Find all open PRs that have matching tags and get their branch names for use in other steps.
+Find all open PRs that have matching tags, octopus-merge them and push to remote.
 
 For example, merge all branches with tag "test" and push the result to "testing" branch:
 ```yaml
@@ -19,19 +19,7 @@ jobs:
         uses: festinuz/octupus-merge@master
         with:
           github_token: ${{ github.token }}
+          source_branch: master  # branch used as base for merge
+          target_branch: testing  # branch that will be pushed to
           labels: test  # labels you want to match, comma-separated
-
-      - name: Push changes to test branch
-        # go to 'testing branch', use 'master' as base
-        # merge all branches that mathed from labels
-        # push branch to origin
-        run: |
-          git config --global user.email "noreply@github.com"
-          git config --global user.name "octomerger"
-          git checkout testing
-          git reset --hard master --
-          git merge --squash master ${{ steps.branch_names.outputs.origin_branches }} \
-            && git commit -m "Merge branches found by labels" \
-            || echo "Nothing to merge"
-          git push origin HEAD --force
 ```

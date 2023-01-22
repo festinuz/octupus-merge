@@ -3,15 +3,17 @@ description: "Get list of PR branch names from list of labels"
 author: "festinuz"
 inputs:
   github_token:
+    description: Token authorized to work with target github repository
+    required: true
+  source_branch:
+    description: Branch used as a base when merging all PRs
+    required: true
+  target_branch:
+    description: Branch that will be pushed to
     required: true
   labels:
     description: "Coma-separated list of labels used to filter PRs"
     required: true
-outputs:
-  branches:
-    description: "Space-separated list of branches"
-  origin_branches:
-    description: "Space-separated list of branches prefixed with 'origin/'"
 runs:
   using: "docker"
   image: "Dockerfile"

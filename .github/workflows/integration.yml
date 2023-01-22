@@ -13,19 +13,6 @@ jobs:
         uses: festinuz/octupus-merge@master
         with:
           github_token: ${{ github.token }}
+          source_branch: master
+          target_branch: testing
           labels: test
-
-      - name: Push changes to test branch
-        run: |
-          git config --global user.email "noreply@github.com"
-          git config --global user.name "octomerger"
-          git fetch origin
-          echo "${{ steps.branch_names.outputs.branches }}"
-          echo "${{ steps.branch_names.outputs.origin_branches }}"
-          git checkout testing
-          git reset --hard master --
-          git merge --squash master ${{ steps.branch_names.outputs.origin_branches }} \
-            && git commit -m "Merge branches found by labels" \
-            || echo "Nothing to merge"
-          git push origin HEAD --force
-
