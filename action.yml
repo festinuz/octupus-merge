@@ -24,9 +24,9 @@ runs:
     - run: pip install -r requirements.txt
       shell: bash
     - run: |
-        INPUT_GITHUB_TOKEN="${{ inputs.github_token }}"
-        INPUT_SOURCE_BRANCH="${{ inputs.source_branch }}"
-        INPUT_TARGET_BRANCH="${{ inputs.target_branch }}"
-        INPUT_LABELS="${{ inputs.labels }}"
         python main.py
+        --token=${{ inputs.github_token }}
+        --source-branch=${{ inputs.source_branch }}
+        --target-branch=${{ inputs.target_branch }}
+        --labels=${{ inputs.labels }}
       shell: bash

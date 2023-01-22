@@ -1,3 +1,4 @@
+import argparse
 import dataclasses
 import os
 import subprocess
@@ -128,13 +129,24 @@ def perform_octomerge(
     push_to_target_branch()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--token', type=str, required=True)
+    parser.add_argument('--source-branch', type=str, required=True)
+    parser.add_argument('--target-branch', type=str, required=True)
+    parser.add_argument('--labels', type=str, required=True)
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    print(args)
     perform_octomerge(
-        token=os.environ['INPUT_GITHUB_TOKEN'],
+        token=args.token,
         repository=os.environ['GITHUB_REPOSITORY'],
-        source_branch=os.environ['INPUT_SOURCE_BRANCH'],
-        target_branch=os.environ['INPUT_TARGET_BRANCH'],
-        labels=os.environ['INPUT_LABELS'].split(','),
+        source_branch=args.source_branch,
+        target_branch=args.target_branch,
+        labels=args.labels.split(','),
     )
 
 
