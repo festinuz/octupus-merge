@@ -23,7 +23,7 @@ runs:
     - run: pip install requests
       shell: bash
     - run: |
-        python main.py \
+        python ${{ github.action_path }}/main.py \
         --token=${{ inputs.github_token }} \
         --source-branch=${{ inputs.source_branch }} \
         --target-branch=${{ inputs.target_branch }} \
