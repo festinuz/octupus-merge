@@ -14,8 +14,8 @@ jobs:
         with:
           fetch-depth: '0'
 
-      - name: Get branch names by labels
-        id: branch_names
+      - name: Merge PRs found by tags
+        id: octopus_merge
         uses: festinuz/octupus-merge@master
         with:
           github_token: ${{ github.token }}
